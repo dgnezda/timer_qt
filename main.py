@@ -5,7 +5,6 @@ import sys
 
 def main():
     app = QApplication([])
-
     timer_app = TimerApp()
     timer_app.show()
     sys.exit(app.exec_())

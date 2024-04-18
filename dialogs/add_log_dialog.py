@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import (
     QLineEdit,
 )
 from PyQt5.QtCore import QDateTime
-# from constants import FONT_COLOR_WHITE, LIGHT_BUTTON_COLOR, HOVER_FONT_COLOR
 
 class AddLogDialog(QDialog):
     """A dialog window for adding new log entries."""

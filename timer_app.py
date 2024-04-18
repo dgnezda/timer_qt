@@ -109,7 +109,7 @@ class TimerApp(QMainWindow):
         self.log_button.setEnabled(False)
         self.time_label.setStyleSheet(
             f"color: {FONT_COLOR_WHITE}; font-family: {DISPLAY_FONT}; font-size: 46px;"
-        )  # Reset color to white
+        ) 
 
     def update_timer(self):
         """Update the timer display."""

@@ -6,20 +6,19 @@ The Timer App is a simple PyQt5-based application designed to help users track t
 
 - **Timer**: Start, pause, reset, and track elapsed time.
 - **Log Management**: Add, view, and remove activity logs associated with timer intervals.
-- **Custom Styling**: Customize the appearance of the application with CSS-like style sheets.
 
 ## Installation
 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/timer-app.git
+    git clone https://github.com/dgnezda/timer_qt.git
     ```
 
 2. Navigate to the project directory:
 
     ```bash
-    cd timer-app
+    cd timer_qt
     ```
 
 3. Install dependencies:
