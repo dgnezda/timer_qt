@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QDialog,
     QLineEdit,
 )
-from PyQt5.QtCore import QDateTime
+from PyQt5.QtCore import QDateTime, Qt
 
 class AddLogDialog(QDialog):
     """A dialog window for adding new log entries."""
@@ -34,9 +34,11 @@ class AddLogDialog(QDialog):
         # Add Log button
         self.add_button = QPushButton("Add Log", self)
         self.add_button.setStyleSheet(
-            "QPushButton { color: #EEEEEE; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 2px; border-color: transparent; } QPushButton:hover { color: #22d3ee }"
+            "QPushButton { color: #EEEEEE; padding: 5px 0 5px 0; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
+            "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
         )
         self.add_button.clicked.connect(self.add_log)
+        self.add_button.setCursor(Qt.PointingHandCursor)
         self.layout.addWidget(self.add_button)
 
     def add_log(self):

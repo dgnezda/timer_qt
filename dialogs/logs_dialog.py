@@ -30,7 +30,8 @@ class LogsDialog(QDialog):
         # Remove Log button
         self.remove_button = QPushButton("Remove Log", self)
         self.remove_button.setStyleSheet(
-            "QPushButton { color: #EEEEEE; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 2px; border-color: transparent; } QPushButton:hover { color: #22d3ee }"
+            "QPushButton { color: #EEEEEE; background-color: #36454F; padding: 7px 30px 7px 30px; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
+            "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F;  }"
         )
         self.remove_button.clicked.connect(self.remove_log)
         self.layout.addWidget(self.remove_button)
@@ -52,12 +53,17 @@ class LogsDialog(QDialog):
             confirmation.setWindowTitle("Confirm Removal")
             confirmation.setText(f"Are you sure you want to remove the log '{log_to_remove}'?")
             confirmation.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-
-            # Set stylesheet for QMessageBox and its buttons
-            confirmation.setStyleSheet(
-                "QMessageBox { background-color: #222831; }"
-                "QPushButton { color: #EEEEEE; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 2px; border-color: transparent; } "
-                "QPushButton:hover { color: #22d3ee } "
+            
+            # Set stylesheet for Yes and No buttons
+            yes_button = confirmation.button(QMessageBox.Yes)
+            yes_button.setStyleSheet(
+                "QPushButton { color: #EEEEEE; background-color: #36454F; padding: 7px 30px 7px 30px; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
+                "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
+            )
+            no_button = confirmation.button(QMessageBox.No)
+            no_button.setStyleSheet(
+                "QPushButton { color: #EEEEEE; background-color: #36454F; padding: 7px 30px 7px 30px; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
+                "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
             )
 
             # Execute the QMessageBox and check the user's choice
@@ -70,7 +76,8 @@ class LogsDialog(QDialog):
                     with open(os.path.join(os.path.dirname(__file__), "logs.txt"), "w") as f:
                         for log in parent_widget.logs:
                             f.write(log + '\n')
+                            # Check if the current log matches the log to remove, and skip writing it to the file
+                            if log.strip() == log_to_remove:
+                                continue
         else:
             QMessageBox.critical(self, "Error", "Please select a log to remove.")
-
-
