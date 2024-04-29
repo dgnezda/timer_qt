@@ -1,13 +1,13 @@
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QMainWindow,
     QWidget,
     QLabel,
     QPushButton,
     QVBoxLayout,
     QHBoxLayout,
-    QAction,
 )
-from PyQt5.QtCore import QTimer, Qt
+from PyQt6.QtGui import QAction
+from PyQt6.QtCore import QTimer, Qt
 from constants import (
     DISPLAY_FONT, 
     BACKGROUND_COLOR, 
@@ -26,12 +26,12 @@ class TimerApp(QMainWindow):
         super().__init__()
 
         # Set up the main window
-        self.setWindowTitle("Timer App")
+        self.setWindowTitle("Time Logger")
         self.setStyleSheet(f"background-color: {BACKGROUND_COLOR}; color: {FONT_COLOR_WHITE}")
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)
-        self.layout.setAlignment(Qt.AlignCenter) 
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter) 
 
         # Timer label
         self.time_label = QLabel("0:00:00", self)
@@ -48,7 +48,7 @@ class TimerApp(QMainWindow):
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
         )
         self.start_button.clicked.connect(self.start_timer)
-        self.start_button.setCursor(Qt.PointingHandCursor)
+        self.start_button.setCursor(Qt.CursorShape.PointingHandCursor)
         button_layout.addWidget(self.start_button)
         self.reset_button = QPushButton("↺", self)
         self.reset_button.setStyleSheet(
@@ -56,7 +56,7 @@ class TimerApp(QMainWindow):
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
         )
         self.reset_button.clicked.connect(self.reset_timer)
-        self.reset_button.setCursor(Qt.PointingHandCursor)
+        self.reset_button.setCursor(Qt.CursorShape.PointingHandCursor)
         button_layout.addWidget(self.reset_button)
         self.log_button = QPushButton("+", self)
         self.log_button.setStyleSheet(
@@ -64,7 +64,7 @@ class TimerApp(QMainWindow):
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
         )
         self.log_button.clicked.connect(self.open_add_log_dialog)
-        self.log_button.setCursor(Qt.PointingHandCursor)
+        self.log_button.setCursor(Qt.CursorShape.PointingHandCursor)
         button_layout.addWidget(self.log_button)
         self.log_button.setEnabled(False) 
         self.layout.addLayout(button_layout)
@@ -74,7 +74,7 @@ class TimerApp(QMainWindow):
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
         )
         self.view_logs_button.clicked.connect(self.open_view_logs_dialog)
-        self.view_logs_button.setCursor(Qt.PointingHandCursor)
+        self.view_logs_button.setCursor(Qt.CursorShape.PointingHandCursor)
         button_layout.addWidget(self.view_logs_button)
 
         # Timer setup
@@ -133,7 +133,7 @@ class TimerApp(QMainWindow):
     def open_add_log_dialog(self):
         """Open the dialog for adding a log."""
         dialog = AddLogDialog(self)
-        dialog.exec_()
+        dialog.exec()
 
     def create_menu(self):
         """Create the application menu."""
@@ -146,4 +146,4 @@ class TimerApp(QMainWindow):
     def open_view_logs_dialog(self):
         """Open the dialog for viewing logs."""
         dialog = LogsDialog(self.logs, parent=self)
-        dialog.exec_()
+        dialog.exec()
