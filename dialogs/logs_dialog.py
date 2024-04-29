@@ -36,6 +36,15 @@ class LogsDialog(QDialog):
         self.remove_button.clicked.connect(self.remove_log)
         self.layout.addWidget(self.remove_button)
 
+        # Clear All button
+        self.clear_all_button = QPushButton("Clear All", self)
+        self.clear_all_button.setStyleSheet(
+            "QPushButton { color: #EEEEEE; background-color: #36454F; padding: 7px 30px 7px 30px; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
+            "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F;  }"
+        )
+        self.clear_all_button.clicked.connect(self.clear_all_logs)
+        self.layout.addWidget(self.clear_all_button)
+
         self.logs = self.read_logs()
         self.load_logs()
     
@@ -75,3 +84,16 @@ class LogsDialog(QDialog):
         with open(logs_path, "w") as file:
             for log in self.logs:
                 file.write(log + '\n')    
+
+    def clear_all_logs(self):
+        """Clear all logs."""
+        confirmation = QMessageBox()
+        confirmation.setWindowTitle("Confirm Clear All")
+        confirmation.setText("Are you sure you want to clear all logs? This action cannot be undone.")
+        confirmation.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        choice = confirmation.exec()
+
+        if choice == QMessageBox.StandardButton.Yes:
+            self.logs = []
+            self.update_log_file()
+            self.load_logs()

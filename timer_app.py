@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
 )
-from PyQt6.QtGui import QAction
+from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import QTimer, Qt
 from constants import (
     DISPLAY_FONT, 
@@ -14,6 +14,9 @@ from constants import (
     FONT_COLOR_WHITE, 
     FONT_COLOR_BLUE, 
 )
+from datetime import datetime
+from collections import defaultdict
+
 from dialogs.add_log_dialog import AddLogDialog
 from dialogs.logs_dialog import LogsDialog
 
@@ -141,8 +144,51 @@ class TimerApp(QMainWindow):
         view_logs_action = QAction("View Logs", self)
         view_logs_action.triggered.connect(self.open_view_logs_dialog)
         file_menu.addAction(view_logs_action)
+        # Export logs action
+        export_logs_action = QAction(QIcon(), "Export Logs", self)
+        export_logs_action.setShortcut("Ctrl+E")
+        export_logs_action.triggered.connect(self.export_logs)
+        file_menu.addAction(export_logs_action)
 
     def open_view_logs_dialog(self):
         """Open the dialog for viewing logs."""
         dialog = LogsDialog(parent=self)
         dialog.exec()
+
+    def export_logs(self):
+        """Export logs to a text file."""
+        logs, = self.get_logs()  # Extract the sorted list of tuples from the returned tuple
+        if logs:
+            first_log_entry = logs[0][1][next(iter(logs[0][1]))][0]
+            last_log_project, last_versions_dict = logs[-1]
+            last_log_entry = last_versions_dict[next(iter(last_versions_dict))][-1]
+
+            first_timestamp = datetime.strptime(first_log_entry.split(" - ")[0][:10], "%Y-%m-%d")
+            last_timestamp = datetime.strptime(last_log_entry.split(" - ")[0][:10], "%Y-%m-%d")
+            
+            filename = f"logs_{first_timestamp.date()}-{last_timestamp.date()}.txt"
+            with open(filename, "w") as file:
+                file.write(f"Time Log entries from {first_timestamp.date()} to {last_timestamp.date()}\n\n")
+                for project, versions in logs:
+                    file.write(f"Project name: {project}\n")
+                    for version, entries in versions.items():
+                        file.write(f"  Version: {version}\n")
+                        for entry in entries:
+                            timestamp, project_version_time = entry.split(" - ", 1)
+                            file.write(f"      {timestamp} - {project_version_time}\n")
+                    file.write("\n")
+            print("Logs exported successfully.")
+        else:
+            print("No logs to export.")
+
+    def get_logs(self):
+        """Retrieve logs grouped by project and version."""
+        logs = defaultdict(lambda: defaultdict(list))
+        logs_dialog = LogsDialog()
+        for log in logs_dialog.logs:
+            parts = log.split(" - ")
+            timestamp = parts[0]
+            project, version = parts[1].split(" ", 1)
+            time = parts[2]
+            logs[project][version].append(f"{timestamp} - {project} {version}- {time}")
+        return sorted(logs.items()),
