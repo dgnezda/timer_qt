@@ -33,3 +33,12 @@ Run the main.py file to launch the Timer App:
 
 ```bash
 python main.py
+```
+
+## Shortcuts
+
+* Press Ctrl+S to start the timer
+* Press Ctrl+R to reset the timer
+* Press Ctrl+A to add a log entry
+* Press Ctrl+O to open the view logs dialog window
+* Press Ctrl+E to export the logs into a text file

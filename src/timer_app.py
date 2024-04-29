@@ -8,17 +8,15 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import QTimer, Qt
-from constants import (
+from src.constants import (
     DISPLAY_FONT, 
     BACKGROUND_COLOR, 
     FONT_COLOR_WHITE, 
     FONT_COLOR_BLUE, 
 )
-from datetime import datetime
-from collections import defaultdict
 
-from dialogs.add_log_dialog import AddLogDialog
-from dialogs.logs_dialog import LogsDialog
+from src.dialogs.add_log_dialog import AddLogDialog
+from src.dialogs.logs_dialog import LogsDialog
 
 
 class TimerApp(QMainWindow):
@@ -45,7 +43,9 @@ class TimerApp(QMainWindow):
 
         # Control buttons
         button_layout = QHBoxLayout()
+        # Start Button
         self.start_button = QPushButton("►", self)
+        self.start_button.setShortcut("Ctrl+S")
         self.start_button.setStyleSheet(
             "QPushButton { color: #EEEEEE; padding: 5px 0 5px 0; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
@@ -53,7 +53,9 @@ class TimerApp(QMainWindow):
         self.start_button.clicked.connect(self.start_timer)
         self.start_button.setCursor(Qt.CursorShape.PointingHandCursor)
         button_layout.addWidget(self.start_button)
+        # Reset Button
         self.reset_button = QPushButton("↺", self)
+        self.reset_button.setShortcut("Ctrl+R")
         self.reset_button.setStyleSheet(
             "QPushButton { color: #EEEEEE; padding: 5px 0 5px 0; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
@@ -61,16 +63,19 @@ class TimerApp(QMainWindow):
         self.reset_button.clicked.connect(self.reset_timer)
         self.reset_button.setCursor(Qt.CursorShape.PointingHandCursor)
         button_layout.addWidget(self.reset_button)
-        self.log_button = QPushButton("+", self)
-        self.log_button.setStyleSheet(
+        # Add Log Button
+        self.add_log_button = QPushButton("+", self)
+        self.add_log_button.setShortcut("Ctrl+A")
+        self.add_log_button.setStyleSheet(
             "QPushButton { color: #EEEEEE; padding: 5px 0 5px 0; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
         )
-        self.log_button.clicked.connect(self.open_add_log_dialog)
-        self.log_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        button_layout.addWidget(self.log_button)
-        self.log_button.setEnabled(False) 
+        self.add_log_button.clicked.connect(self.open_add_log_dialog)
+        self.add_log_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        button_layout.addWidget(self.add_log_button)
+        self.add_log_button.setEnabled(False) 
         self.layout.addLayout(button_layout)
+        # View Logs Button
         self.view_logs_button = QPushButton("≣", self)
         self.view_logs_button.setStyleSheet(
             "QPushButton { color: #EEEEEE; padding: 5px 10px; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
@@ -94,7 +99,7 @@ class TimerApp(QMainWindow):
         if not self.running:
             self.running = True
             self.start_button.setText("■")
-            self.log_button.setEnabled(False)
+            self.add_log_button.setEnabled(False)
             self.time_label.setStyleSheet(
                 f"color: {FONT_COLOR_BLUE}; font-family: {DISPLAY_FONT}; font-size: 46px;"
             ) 
@@ -102,7 +107,7 @@ class TimerApp(QMainWindow):
         else:
             self.running = False
             self.start_button.setText("►")
-            self.log_button.setEnabled(True)
+            self.add_log_button.setEnabled(True)
             self.pause_timer()
 
     def pause_timer(self): 
@@ -119,7 +124,7 @@ class TimerApp(QMainWindow):
         self.seconds = 0
         self.time_label.setText("0:00:00")
         self.start_button.setText("►")
-        self.log_button.setEnabled(False)
+        self.add_log_button.setEnabled(False)
         self.time_label.setStyleSheet(
             f"color: {FONT_COLOR_WHITE}; font-family: {DISPLAY_FONT}; font-size: 46px;"
         ) 
@@ -141,54 +146,23 @@ class TimerApp(QMainWindow):
         """Create the application menu."""
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu("File")
+        # View logs action
         view_logs_action = QAction("View Logs", self)
+        view_logs_action.setShortcut("Ctrl+O")
         view_logs_action.triggered.connect(self.open_view_logs_dialog)
         file_menu.addAction(view_logs_action)
         # Export logs action
         export_logs_action = QAction(QIcon(), "Export Logs", self)
         export_logs_action.setShortcut("Ctrl+E")
-        export_logs_action.triggered.connect(self.export_logs)
+        export_logs_action.triggered.connect(self.export_logs_from_menu)
         file_menu.addAction(export_logs_action)
 
     def open_view_logs_dialog(self):
         """Open the dialog for viewing logs."""
         dialog = LogsDialog(parent=self)
         dialog.exec()
-
-    def export_logs(self):
-        """Export logs to a text file."""
-        logs, = self.get_logs()  # Extract the sorted list of tuples from the returned tuple
-        if logs:
-            first_log_entry = logs[0][1][next(iter(logs[0][1]))][0]
-            last_log_project, last_versions_dict = logs[-1]
-            last_log_entry = last_versions_dict[next(iter(last_versions_dict))][-1]
-
-            first_timestamp = datetime.strptime(first_log_entry.split(" - ")[0][:10], "%Y-%m-%d")
-            last_timestamp = datetime.strptime(last_log_entry.split(" - ")[0][:10], "%Y-%m-%d")
-            
-            filename = f"logs_{first_timestamp.date()}-{last_timestamp.date()}.txt"
-            with open(filename, "w") as file:
-                file.write(f"Time Log entries from {first_timestamp.date()} to {last_timestamp.date()}\n\n")
-                for project, versions in logs:
-                    file.write(f"Project name: {project}\n")
-                    for version, entries in versions.items():
-                        file.write(f"  Version: {version}\n")
-                        for entry in entries:
-                            timestamp, project_version_time = entry.split(" - ", 1)
-                            file.write(f"      {timestamp} - {project_version_time}\n")
-                    file.write("\n")
-            print("Logs exported successfully.")
-        else:
-            print("No logs to export.")
-
-    def get_logs(self):
-        """Retrieve logs grouped by project and version."""
-        logs = defaultdict(lambda: defaultdict(list))
-        logs_dialog = LogsDialog()
-        for log in logs_dialog.logs:
-            parts = log.split(" - ")
-            timestamp = parts[0]
-            project, version = parts[1].split(" ", 1)
-            time = parts[2]
-            logs[project][version].append(f"{timestamp} - {project} {version}- {time}")
-        return sorted(logs.items()),
+    
+    def export_logs_from_menu(self):
+        """Method to export logs from the menu."""
+        dialog = LogsDialog(parent=self)
+        dialog.export_logs()

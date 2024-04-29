@@ -6,7 +6,8 @@ from PyQt6.QtWidgets import (
     QListWidget,
     QMessageBox
 )
-
+from datetime import datetime, timedelta
+from collections import defaultdict
 
 class LogsDialog(QDialog):
     """A dialog window to manage logs."""
@@ -44,6 +45,15 @@ class LogsDialog(QDialog):
         )
         self.clear_all_button.clicked.connect(self.clear_all_logs)
         self.layout.addWidget(self.clear_all_button)
+
+        # Export Logs button
+        self.export_button = QPushButton("Export Logs", self)
+        self.export_button.setStyleSheet(
+            "QPushButton { color: #EEEEEE; background-color: #36454F; padding: 7px 30px 7px 30px; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
+            "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F;  }"
+        )
+        self.export_button.clicked.connect(self.export_logs)
+        self.layout.addWidget(self.export_button)
 
         self.logs = self.read_logs()
         self.load_logs()
@@ -97,3 +107,51 @@ class LogsDialog(QDialog):
             self.logs = []
             self.update_log_file()
             self.load_logs()
+
+    def export_logs(self):
+        """Export logs to a Markdown file."""
+        logs, = self.get_logs()  # Extract the sorted list of tuples from the returned tuple
+        if logs:
+            first_log_entry = logs[0][1][next(iter(logs[0][1]))][0]
+            last_log_project, last_versions_dict = logs[-1]
+            last_log_entry = last_versions_dict[next(iter(last_versions_dict))][-1]
+
+            first_timestamp = datetime.strptime(first_log_entry.split(" - ")[0][:10], "%Y-%m-%d")
+            last_timestamp = datetime.strptime(last_log_entry.split(" - ")[0][:10], "%Y-%m-%d")
+
+            filename = f"logs_{first_timestamp.date()}-{last_timestamp.date()}.md"
+            total_time = timedelta()
+            with open(filename, "w") as file:
+                file.write(f"# Time Log entries from {first_timestamp.date()} to {last_timestamp.date()}\n\n")
+                for project, versions in logs:
+                    project_time = timedelta()
+                    file.write(f"## Project name: {project}\n\n")
+                    for version, entries in versions.items():
+                        version_time = timedelta()
+                        file.write(f"### Version: {version}\n\n")
+                        for entry in entries:
+                            timestamp, project_version_time = entry.split(" - ", 1)
+                            time_str = project_version_time.split("- ")[-1]
+                            hrs, mins, secs = map(int, time_str.split(":"))
+                            version_time += timedelta(hours=hrs, minutes=mins, seconds=secs)
+                            file.write(f"- **{timestamp}**: {project_version_time}\n")
+                        file.write("\n")
+                        project_time += version_time
+                        total_time += version_time
+                    file.write(f"### Total time logged for {project}: {str(project_time)}\n\n")
+                file.write(f"## Total time logged for all projects: {str(total_time)}\n")
+            print("Logs exported successfully to Markdown file.")
+        else:
+            print("No logs to export.")
+
+
+    def get_logs(self):
+        """Retrieve logs grouped by project and version."""
+        logs = defaultdict(lambda: defaultdict(list))
+        for log in self.logs:
+            parts = log.split(" - ")
+            timestamp = parts[0]
+            project, version = parts[1].split(" ", 1)
+            time = parts[2]
+            logs[project][version].append(f"{timestamp} - {project} {version}- {time}")
+        return sorted(logs.items()),

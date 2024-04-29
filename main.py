@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QApplication
-from timer_app import TimerApp
+from src.timer_app import TimerApp
 import sys
 
 
