@@ -85,7 +85,6 @@ class TimerApp(QMainWindow):
 
         # Menu setup
         self.create_menu()
-        self.logs = []
 
     def start_timer(self):
         """Start or pause the timer."""
@@ -145,5 +144,5 @@ class TimerApp(QMainWindow):
 
     def open_view_logs_dialog(self):
         """Open the dialog for viewing logs."""
-        dialog = LogsDialog(self.logs, parent=self)
+        dialog = LogsDialog(parent=self)
         dialog.exec()

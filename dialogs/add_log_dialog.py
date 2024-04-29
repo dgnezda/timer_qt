@@ -53,7 +53,6 @@ class AddLogDialog(QDialog):
             # Write log entry to file
             with open(os.path.join(os.path.dirname(__file__), "logs.txt"), "a") as f:
                 f.write(log_entry)
-            self.parent().logs.append(log_entry.strip())
             self.parent().reset_timer()
             # Close dialog
             self.close()

@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
 class LogsDialog(QDialog):
     """A dialog window to manage logs."""
 
-    def __init__(self, logs, parent=None):
+    def __init__(self, parent=None):
         """
         Initialize the LogsDialog.
 
@@ -36,48 +36,42 @@ class LogsDialog(QDialog):
         self.remove_button.clicked.connect(self.remove_log)
         self.layout.addWidget(self.remove_button)
 
-        self.load_logs(logs)
+        self.logs = self.read_logs()
+        self.load_logs()
+    
+    def read_logs(self):
+        """Reads logs from the file and returns them as a list."""
+        logs_path = os.path.join(os.path.dirname(__file__), "logs.txt")
+        with open(logs_path, "r") as file:
+            return [line.strip() for line in file]
 
-    def load_logs(self, logs):
-        """Load logs from logs.txt file."""
-        with open(os.path.join(os.path.dirname(__file__), "logs.txt"), "r") as f:
-            for line in f:
-                self.logs_list.addItem(line.strip())
+    def load_logs(self):
+        """Load logs into the QListWidget from self.logs."""
+        self.logs_list.clear()
+        for log in self.logs:
+            self.logs_list.addItem(log)
 
     def remove_log(self):
         """Remove the selected log entry."""
         selected_item = self.logs_list.currentItem()
         if selected_item:
             log_to_remove = selected_item.text()
-            confirmation = QMessageBox(self)
+            confirmation = QMessageBox()
             confirmation.setWindowTitle("Confirm Removal")
             confirmation.setText(f"Are you sure you want to remove the log '{log_to_remove}'?")
             confirmation.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-            
-            # Set stylesheet for Yes and No buttons
-            yes_button = confirmation.button(QMessageBox.StandardButton.Yes)
-            yes_button.setStyleSheet(
-                "QPushButton { color: #EEEEEE; background-color: #36454F; padding: 7px 30px 7px 30px; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
-                "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
-            )
-            no_button = confirmation.button(QMessageBox.StandardButton.No)
-            no_button.setStyleSheet(
-                "QPushButton { color: #EEEEEE; background-color: #36454F; padding: 7px 30px 7px 30px; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
-                "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
-            )
-
-            # Execute the QMessageBox and check the user's choice
             choice = confirmation.exec()
+
             if choice == QMessageBox.StandardButton.Yes:
-                self.logs_list.takeItem(self.logs_list.row(selected_item))
-                parent_widget = self.parent()
-                if parent_widget and log_to_remove in parent_widget.logs:
-                    parent_widget.logs.remove(log_to_remove)
-                    with open(os.path.join(os.path.dirname(__file__), "logs.txt"), "w") as f:
-                        for log in parent_widget.logs:
-                            f.write(log + '\n')
-                            # Check if the current log matches the log to remove, and skip writing it to the file
-                            if log.strip() == log_to_remove:
-                                continue
+                self.logs.remove(log_to_remove)
+                self.update_log_file()
+                self.load_logs()
         else:
             QMessageBox.critical(self, "Error", "Please select a log to remove.")
+    
+    def update_log_file(self):
+        """Update the logs.txt file based on current state of self.logs."""
+        logs_path = os.path.join(os.path.dirname(__file__), "logs.txt")
+        with open(logs_path, "w") as file:
+            for log in self.logs:
+                file.write(log + '\n')    
