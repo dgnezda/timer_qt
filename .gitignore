@@ -22,3 +22,6 @@ pip-delete-this-directory.txt
 # PyQt specific
 .ui
 RCC/
+
+# macOS specific
+.DS_Store

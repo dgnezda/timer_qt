@@ -6,6 +6,7 @@ The Timer Logger App is a simple PyQt6-based application designed to help users 
 
 - **Timer**: Start, pause, reset, and track elapsed time.
 - **Log Management**: Add, view, and remove activity logs associated with timer intervals.
+- **Export**: Export a summary of log entries in .md format with logs grouped by project/log name.
 
 ## Installation
 
@@ -37,7 +38,7 @@ python main.py
 
 ## Keyboard Shortcuts
 
-* Press Space to start the timer
+* Press Space to start/pause the timer
 * Press Ctrl+A to add a log entry
 * Press Ctrl+O to open the view logs dialog window
 * Press Ctrl+E to export the logs into a text file

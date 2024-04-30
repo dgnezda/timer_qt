@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-class LogsDialog(QDialog):
+class ViewLogsDialog(QDialog):
     """A dialog window to manage logs."""
 
     def __init__(self, parent=None):
@@ -84,12 +84,12 @@ class LogsDialog(QDialog):
 
             if choice == QMessageBox.StandardButton.Yes:
                 self.logs.remove(log_to_remove)
-                self.update_log_file()
+                self._update_log_file()
                 self.load_logs()
         else:
             QMessageBox.critical(self, "Error", "Please select a log to remove.")
     
-    def update_log_file(self):
+    def _update_log_file(self):
         """Update the logs.txt file based on current state of self.logs."""
         logs_path = os.path.join(os.path.dirname(__file__), "logs.txt")
         with open(logs_path, "w") as file:
@@ -106,12 +106,12 @@ class LogsDialog(QDialog):
 
         if choice == QMessageBox.StandardButton.Yes:
             self.logs = []
-            self.update_log_file()
+            self._update_log_file()
             self.load_logs()
 
     def export_logs(self):
         """Export logs to a Markdown file."""
-        logs, = self.get_logs()  # Extract the sorted list of tuples from the returned tuple
+        logs, = self._get_logs()  # Extract the sorted list of tuples from the returned tuple
         if logs:
             first_log_entry = logs[0][1][next(iter(logs[0][1]))][0]
             last_log_project, last_versions_dict = logs[-1]
@@ -145,8 +145,7 @@ class LogsDialog(QDialog):
         else:
             QMessageBox.warning(self, "No Logs", "No logs to export.", QMessageBox.StandardButton.Ok)
 
-
-    def get_logs(self):
+    def _get_logs(self):
         """Retrieve logs grouped by project and version."""
         logs = defaultdict(lambda: defaultdict(list))
         for log in self.logs:

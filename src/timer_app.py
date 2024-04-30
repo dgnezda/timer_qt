@@ -18,7 +18,7 @@ from src.constants import (
     FONT_COLOR_BLUE, 
 )
 from src.dialogs.add_log_dialog import AddLogDialog
-from src.dialogs.logs_dialog import LogsDialog
+from src.dialogs.view_logs_dialog import ViewLogsDialog
 
 
 class TimerApp(QMainWindow):
@@ -48,7 +48,6 @@ class TimerApp(QMainWindow):
 
         # Start Button
         self.start_button = QPushButton("►", self)
-        self.start_button.setShortcut("Space")
         self.start_button.setStyleSheet(
             "QPushButton { color: #EEEEEE; padding: 5px 0 5px 0; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
@@ -129,6 +128,9 @@ class TimerApp(QMainWindow):
         self.start_action.triggered.connect(self.start_timer)
         self.pause_action.triggered.connect(self.pause_timer)
         self.reset_action.triggered.connect(self.reset_timer)
+        self.add_log_action.triggered.connect(self.open_add_log_dialog)
+        self.view_logs_action.triggered.connect(self.open_view_logs_dialog)
+        self.export_logs_action.triggered.connect(self.export_logs_from_menu)
         self.quit_action.triggered.connect(QApplication.instance().quit)
 
         # Set the menu for the system tray icon
@@ -138,15 +140,30 @@ class TimerApp(QMainWindow):
         # Menu setup
         self.create_menu()
 
+    def keyPressEvent(self, event):
+        """Handle key press events in the application."""
+        if event.key() == Qt.Key.Key_Space:
+            self.toggle_timer()
+        else:
+            super().keyPressEvent(event)
+    
+    def toggle_timer(self):
+        """Toggle the timer between running and paused."""
+        if self.running:
+            self.pause_timer()
+        else:
+            self.start_timer()
+
     def start_timer(self):
-        """Start or pause the timer."""
+        """Start the timer."""
         if not self.running:
             self.running = True
             self.start_button.setText("■")
             self.add_log_button.setEnabled(False)
             self.time_label.setStyleSheet(
                 f"color: {FONT_COLOR_BLUE}; font-family: {DISPLAY_FONT}; font-size: 46px;"
-            ) 
+            )
+            self.reset_button.setEnabled(False) 
             self.timer.start(1000)
         else:
             self.running = False
@@ -159,6 +176,8 @@ class TimerApp(QMainWindow):
         """Pause the timer."""
         self.running = False
         self.reset_button.setEnabled(True)
+        self.start_button.setText("►")
+        self.add_log_button.setEnabled(True)
         self.time_label.setStyleSheet(
             f"color: {FONT_COLOR_WHITE}; font-family: {DISPLAY_FONT}; font-size: 46px;"
         ) 
@@ -212,10 +231,10 @@ class TimerApp(QMainWindow):
 
     def open_view_logs_dialog(self):
         """Open the dialog for viewing logs."""
-        dialog = LogsDialog(parent=self)
+        dialog = ViewLogsDialog(parent=self)
         dialog.exec()
     
     def export_logs_from_menu(self):
         """Method to export logs from the menu."""
-        dialog = LogsDialog(parent=self)
+        dialog = ViewLogsDialog(parent=self)
         dialog.export_logs()
