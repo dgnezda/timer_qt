@@ -20,6 +20,7 @@ class LogsDialog(QDialog):
             logs (list): A list of log entries to display.
         """
         super().__init__(parent)
+        self.setFixedWidth(400)
         self.setWindowTitle("View Logs")
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -140,9 +141,9 @@ class LogsDialog(QDialog):
                         total_time += version_time
                     file.write(f"### Total time logged for {project}: {str(project_time)}\n\n")
                 file.write(f"## Total time logged for all projects: {str(total_time)}\n")
-            print("Logs exported successfully to Markdown file.")
+            QMessageBox.information(self, "Export Successful", "Logs exported successfully to Markdown file.", QMessageBox.StandardButton.Ok)
         else:
-            print("No logs to export.")
+            QMessageBox.warning(self, "No Logs", "No logs to export.", QMessageBox.StandardButton.Ok)
 
 
     def get_logs(self):

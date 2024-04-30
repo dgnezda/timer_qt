@@ -5,8 +5,11 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QHBoxLayout,
+    QSystemTrayIcon, 
+    QMenu,
+    QApplication
 )
-from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtGui import QAction, QIcon, QFont
 from PyQt6.QtCore import QTimer, Qt
 from src.constants import (
     DISPLAY_FONT, 
@@ -14,7 +17,6 @@ from src.constants import (
     FONT_COLOR_WHITE, 
     FONT_COLOR_BLUE, 
 )
-
 from src.dialogs.add_log_dialog import AddLogDialog
 from src.dialogs.logs_dialog import LogsDialog
 
@@ -43,9 +45,10 @@ class TimerApp(QMainWindow):
 
         # Control buttons
         button_layout = QHBoxLayout()
+
         # Start Button
         self.start_button = QPushButton("►", self)
-        self.start_button.setShortcut("Ctrl+S")
+        self.start_button.setShortcut("Space")
         self.start_button.setStyleSheet(
             "QPushButton { color: #EEEEEE; padding: 5px 0 5px 0; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
@@ -53,9 +56,9 @@ class TimerApp(QMainWindow):
         self.start_button.clicked.connect(self.start_timer)
         self.start_button.setCursor(Qt.CursorShape.PointingHandCursor)
         button_layout.addWidget(self.start_button)
+
         # Reset Button
         self.reset_button = QPushButton("↺", self)
-        self.reset_button.setShortcut("Ctrl+R")
         self.reset_button.setStyleSheet(
             "QPushButton { color: #EEEEEE; padding: 5px 0 5px 0; background-color: #36454F; border-style: outset; border-radius: 5px; border-width: 1px; border-color: transparent; } "
             "QPushButton:hover { background-color: #222831; color: #22d3ee; border-color: #36454F; }"
@@ -63,6 +66,8 @@ class TimerApp(QMainWindow):
         self.reset_button.clicked.connect(self.reset_timer)
         self.reset_button.setCursor(Qt.CursorShape.PointingHandCursor)
         button_layout.addWidget(self.reset_button)
+        self.reset_button.setEnabled(False)
+
         # Add Log Button
         self.add_log_button = QPushButton("+", self)
         self.add_log_button.setShortcut("Ctrl+A")
@@ -75,6 +80,7 @@ class TimerApp(QMainWindow):
         button_layout.addWidget(self.add_log_button)
         self.add_log_button.setEnabled(False) 
         self.layout.addLayout(button_layout)
+        
         # View Logs Button
         self.view_logs_button = QPushButton("≣", self)
         self.view_logs_button.setStyleSheet(
@@ -90,6 +96,44 @@ class TimerApp(QMainWindow):
         self.timer.timeout.connect(self.update_timer)
         self.seconds = 0
         self.running = False
+
+        # System tray icon and menu
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon("img/icon.png"))
+        self.tray_icon.setToolTip('Time Logger')
+        self.tray_menu = QMenu()
+
+        # Live timer display - tray menu
+        self.tray_timer_label = QAction('Timer: 0:00:00', self.tray_menu)
+        self.tray_timer_label.setFont(QFont('Helvetica', 10))
+        self.tray_timer_label.setDisabled(True)
+        self.tray_menu.addAction(self.tray_timer_label)
+        self.tray_menu.addSeparator()
+
+        # Timer controls - tray menu
+        self.start_action = self.tray_menu.addAction('Start Timer')
+        self.pause_action = self.tray_menu.addAction('Pause Timer')
+        self.reset_action = self.tray_menu.addAction('Reset Timer')
+        self.tray_menu.addSeparator()
+
+        # Other actions - tray menu
+        self.add_log_action = self.tray_menu.addAction('Add Log')
+        self.view_logs_action = self.tray_menu.addAction('View Logs')
+        self.export_logs_action = self.tray_menu.addAction('Export Logs')
+        self.tray_menu.addSeparator()
+
+        # Quit action - tray menu
+        self.quit_action = self.tray_menu.addAction('Quit Time Logger')
+
+        # Connect actions to functions
+        self.start_action.triggered.connect(self.start_timer)
+        self.pause_action.triggered.connect(self.pause_timer)
+        self.reset_action.triggered.connect(self.reset_timer)
+        self.quit_action.triggered.connect(QApplication.instance().quit)
+
+        # Set the menu for the system tray icon
+        self.tray_icon.setContextMenu(self.tray_menu)
+        self.tray_icon.show()
 
         # Menu setup
         self.create_menu()
@@ -109,10 +153,12 @@ class TimerApp(QMainWindow):
             self.start_button.setText("►")
             self.add_log_button.setEnabled(True)
             self.pause_timer()
+            self.reset_button.setEnabled(True)
 
     def pause_timer(self): 
         """Pause the timer."""
         self.running = False
+        self.reset_button.setEnabled(True)
         self.time_label.setStyleSheet(
             f"color: {FONT_COLOR_WHITE}; font-family: {DISPLAY_FONT}; font-size: 46px;"
         ) 
@@ -123,8 +169,10 @@ class TimerApp(QMainWindow):
         self.running = False
         self.seconds = 0
         self.time_label.setText("0:00:00")
+        self.tray_timer_label.setText('Timer: 0:00:00')
         self.start_button.setText("►")
         self.add_log_button.setEnabled(False)
+        self.reset_button.setEnabled(False)
         self.time_label.setStyleSheet(
             f"color: {FONT_COLOR_WHITE}; font-family: {DISPLAY_FONT}; font-size: 46px;"
         ) 
@@ -135,7 +183,12 @@ class TimerApp(QMainWindow):
         hours = self.seconds // 3600
         minutes = (self.seconds // 60) % 60
         seconds = self.seconds % 60
-        self.time_label.setText(f"{hours}:{minutes:02}:{seconds:02}")
+        formatted_time = f"{hours}:{minutes:02}:{seconds:02}"
+        self.time_label.setText(formatted_time)
+        self.tray_timer_label.setText(f"Timer: {formatted_time}")
+
+        if not self.tray_icon.isVisible():
+            self.tray_icon.show()
 
     def open_add_log_dialog(self):
         """Open the dialog for adding a log."""
